@@ -1,0 +1,20 @@
+{
+  "extends": ["config:base"],
+  "ignorePresets": [":prHourlyLimit2"],
+  "assignees": ["gfrntz","dragonsmith","bregor"],
+  "labels": ["renovate"],
+  "lazyGrouping": false,
+  "recreateClosed": true,
+  "packageRules": [
+    {
+      "packageNames": [
+        "node"
+      ],
+      "enabled": false
+    }
+  ],
+  "ignorePaths": [
+      "package.json"
+  ],
+  "masterIssue": true
+}

@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name | quote }}
+  labels:
+    app: {{ template "og-generator.name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ default 2 .Values.replicas }}
+  revisionHistoryLimit: {{ default 10 .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ template "og-generator.name" . }}
+      release: {{ .Release.Name | quote }}
+  strategy:
+    rollingUpdate:
+      maxSurge: {{ .Values.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.rollingUpdate.maxUnavailable }}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ template "og-generator.name" . }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+        release: {{ .Release.Name | quote }}
+        heritage: {{ .Release.Service | quote }}
+      name: {{ .Release.Name | quote }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: {{ template "og-generator.name" . }}
+                  chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+                  release: {{ .Release.Name | quote }}
+            weight: 100
+      containers:
+      - name: og-generator
+        readinessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /healthz
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 3
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+{{- range $key, $val := .Values.ports }}
+          - name: {{ $key }}
+            containerPort: {{ $val }}
+{{- end }}
+        env:
+          - name: PORT
+            value: {{ .Values.ports.http | quote }}
+          - name: INTERNAL_PORT
+            value: {{ .Values.ports.metrics | quote }}
+{{- include "envVariables" . | indent 10 }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        {{- if .Values.resources }}
+{{ toYaml .Values.resources | indent 10 }}
+        {{- end }}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      imagePullSecrets:
+      - name: "amplifr-gcr-io"
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

@@ -1,0 +1,106 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: '1'
+    scheduler.alpha.kubernetes.io/affinity: >
+      {"podAntiAffinity": {
+          "requiredDuringSchedulingIgnoredDuringExecution": [{
+            "labelSelector": {
+              "matchExpresions": [{
+                "key": "k8s-app",
+                "operator": "NotIn",
+                "values": [
+                "amplifr-og-generator"
+                ]}]},
+          "topologyKey": "kubernetes.io/hostname"
+      }]}}
+  labels:
+    k8s-app: amplifr-og-generator
+    app-type: nodejs-application
+  name: og-generator
+  namespace: apps
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      k8s-app: amplifr-og-generator
+      app-type: nodejs-application
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  minReadySeconds: 10
+  template:
+    metadata:
+      creationTimestamp:
+      labels:
+        k8s-app: amplifr-og-generator
+        app-type: nodejs-application
+    spec:
+      containers:
+      - name: og-generator
+        image: quay.io/evilmartians/og-generator:0-1-32
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 100m
+            memory: 1024Mi
+        env:
+        - name: PORT
+          value: '8081'
+        - name: HOST
+          value: 0.0.0.0
+        - name: PAYLOAD_TYPE
+          value: og-generator
+        - name: IMAGE_VERSION
+          value: 0-1-32
+        - name: SLACK_BOT_NAME_POST_START
+          valueFrom:
+            configMapKeyRef:
+              name: notification-settings
+              key: slack-bot-name-post-start
+        - name: SLACK_BOT_NAME_PRE_STOP
+          valueFrom:
+            configMapKeyRef:
+              name: notification-settings
+              key: slack-bot-name-pre-stop
+        - name: SLACK_CHANNEL_POST_START
+          valueFrom:
+            configMapKeyRef:
+              name: notification-settings
+              key: slack-channel-post-start
+        - name: SLACK_CHANNEL_PRE_STOP
+          valueFrom:
+            configMapKeyRef:
+              name: notification-settings
+              key: slack-channel-pre-stop
+        - name: SLACK_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: slack-integration-token
+              key: token
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - "/bin/bash"
+              - "/app/bin/post_start_notify.sh"
+          preStop:
+            exec:
+              command:
+              - "/bin/bash"
+              - "/app/bin/pre_stop_notify.sh"
+        command:
+        - node
+        args:
+        - server
+        terminationMessagePath: "/dev/termination-log"
+      imagePullSecrets:
+      - name: gazay-quay-io
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

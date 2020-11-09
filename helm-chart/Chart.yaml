@@ -1,0 +1,14 @@
+apiVersion: v2
+appVersion: "2.0"
+description: A Helm chart for amplifr og-generator.
+name: og-generator
+version: 0.1.0
+home: https://github.com/evilmartians/amplifr-og-generator/
+keywords:
+  - amplifr-og-generator
+  - amplifr
+sources:
+  - https://github.com/evilmartians/amplifr-og-generator/
+maintainers:
+  - name: Gleb Rusakov
+    email: gfrntz@evilmartians.com

@@ -1,0 +1,18 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: og-generator-servicemonitor
+  labels:
+    component: og-generator
+spec:
+  endpoints:
+  - targetPort: {{ .Values.ports.metrics }}
+  jobLabel: og-generator-servicemonitor
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app: {{ template "og-generator.name" . }}
+      release: {{ .Release.Name | quote }}

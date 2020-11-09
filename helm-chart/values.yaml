@@ -1,0 +1,26 @@
+nodeSelector: {}
+
+replicas: 2
+
+image:
+  repository: gcr.io/amplifr.com/amplifr/amplifr-og-generator
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imageCredentials: {}
+  # registry: ""
+  # username: ""
+  # password: ""
+
+revisionHistoryLimit: 20
+
+rollingUpdate:
+  maxSurge: 2
+  maxUnavailable: 0
+
+ports:
+  http: "5000"
+  metrics: "8081"
+
+envSecrets:
+  tokens: ""

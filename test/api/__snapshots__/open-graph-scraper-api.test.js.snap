@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`checks response format from Open Graph Scraper 1`] = `
+Object {
+  "charset": "utf8",
+  "ogDescription": "Amplifr is a social media publication and analytics app that analyses conversion and revenue for each of your social media updates. Learn how many purchases, button clicks, newsletter signups or other goal conversions you had for your social media marketing efforts!",
+  "ogImage": Object {
+    "height": null,
+    "type": "png",
+    "url": "https://amplifr.com/share-en.png",
+    "width": null,
+  },
+  "ogLocale": "en",
+  "ogSiteName": "Amplifr",
+  "ogTitle": "Amplifr: Social media scheduling with social media ROI analytics",
+  "ogType": "website",
+  "ogUrl": "https://amplifr.com/en/",
+  "requestUrl": "https://amplifr.com",
+  "success": true,
+  "twitterCard": "summary_large_image",
+  "twitterCreator": "@amplifr",
+  "twitterSite": "@amplifr",
+}
+`;

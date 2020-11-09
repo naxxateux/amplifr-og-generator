@@ -1,0 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: og-generator.amplifr.com
+  labels:
+    app: {{ template "og-generator.name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 32m
+    kubernetes.io/ingress.allow-http: "false"
+    kubernetes.io/tls-acme: "false"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      if ($http_origin ~* "^https?://((?:amplifr\.com)|(?:.*\.amplifr\.com))$") {
+        add_header 'Access-Control-Allow-Origin' "$http_origin" always;
+        add_header 'Access-Control-Allow-Methods' 'GET, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type' always;
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+      }
+  namespace: {{ .Release.Namespace }}
+spec:
+  rules:
+  - host: og-generator.amplifr.com
+    http:
+      paths:
+      - backend:
+          serviceName: {{ .Release.Name }}
+          servicePort: 80
+        path: /
+  tls:
+  - hosts:
+    - og-generator.amplifr.com
+    secretName: wildcard.amplifr.com-tls

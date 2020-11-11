@@ -1,18 +1,16 @@
 {
   "name": "amplifr-og-generator",
-  "version": "1.0",
+  "version": "1.0.0",
   "private": true,
-  "description": "Node.js server for generating templates and images with custom data for open graph cards",
+  "description": "Node.js server for generating templates and og:images with user data",
   "main": "server.js",
   "engines": {
     "node": ">=14.0.0"
   },
   "dependencies": {
-    "@sentry/node": "5.23.0",
+    "canvas": "^2.6.1",
     "chalk": "^4.0.0",
-    "fastimage": "^2.0.1",
-    "open-graph-scraper": "^4.6.0",
-    "prom-client": "^12.0.0"
+    "node-html-parser": "^2.0.0"
   },
   "devDependencies": {
     "@logux/eslint-config": "^40.0.4",

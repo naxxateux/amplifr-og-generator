@@ -1,0 +1,10 @@
+node_modules
+
+real-values.yaml
+
+.DS_Store
+*~
+coverage/
+
+npm-debug.log
+yarn-error.log

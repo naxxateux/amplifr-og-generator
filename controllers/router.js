@@ -1,13 +1,14 @@
-const { getMonitoring } = require('../lib/prometheus')
-const parseImageInfo = require('./parse-image-info')
-const parsePageInfo = require('./parse-page-info')
+const generateTemplate = require('../controllers/generate-template')
+const generateImage = require('../controllers/generate-image')
 const formattedLog = require('../lib/formatted-log')
 
-const INTERNAL_PORT = process.env.INTERNAL_PORT || '8081'
-const TEST_URL = 'https://preview.amplifr.com?url=https://amplifr.com'
+const TEST_IMAGE_URL =
+  'https://og-generator.amplifr.com/image?type=calculator&values=1,2'
+const TEST_URL = 'https://og-generator.amplifr.com?type=calculator&values=1,2'
 
 function response404 (requestUrl) {
   formattedLog('Action not found', requestUrl, 'error')
+
   let e = new Error(`Action not found: ${requestUrl}`)
 
   e.statusCode = 404
@@ -18,23 +19,22 @@ function response404 (requestUrl) {
 function router (request) {
   let baseUrl = 'http://' + request.headers.host + '/'
   let parsedUrl = new URL(request.url, baseUrl)
-  let isInternal = parsedUrl.port === INTERNAL_PORT
-  let queryUrl = parsedUrl.searchParams.get('url')
+  let queryType = parsedUrl.searchParams.get('type')
 
   if (parsedUrl.pathname === '/healthz') {
     return JSON.stringify({ ok: true })
-  } else if (parsedUrl.pathname === '/metrics' && isInternal) {
-    return getMonitoring()
   }
 
   if (request.method !== 'GET') {
     return response404(request.url)
-  } else if (parsedUrl.pathname === '/image/info') {
-    return parseImageInfo(parsedUrl)
-  } else if (parsedUrl.pathname === '/' && queryUrl) {
-    return parsePageInfo(parsedUrl, request.headers.referer)
+  } else if (parsedUrl.pathname === '/image' && queryType) {
+    return generateImage(parsedUrl)
+  } else if (parsedUrl.pathname === '/' && queryType) {
+    return generateTemplate(parsedUrl)
+  } else if (parsedUrl.pathname === '/test-image') {
+    return generateImage(new URL(TEST_IMAGE_URL))
   } else if (parsedUrl.pathname === '/test') {
-    return parsePageInfo(new URL(TEST_URL))
+    return generateTemplate(new URL(TEST_URL))
   } else {
     return response404(request.url)
   }

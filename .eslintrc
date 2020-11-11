@@ -1,0 +1,13 @@
+{
+  "extends": "@logux/eslint-config",
+  "rules": {
+    "jest/no-conditional-expect": "off",
+    "jest/prefer-called-with": "off",
+    "jest/no-alias-methods": "off",
+    "unicorn/better-regex": "off",
+    "multiline-ternary": [
+      "error",
+      "always-multiline"
+    ]
+  }
+}

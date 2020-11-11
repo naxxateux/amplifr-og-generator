@@ -1,13 +1,12 @@
 module.exports = {
   coverageThreshold: {
     global: {
-      statements: 96.43 // TODO
+      statements: 100
     }
   },
   coveragePathIgnorePatterns: [
-    '<rootDir>/controllers/parse-image-info.js', // TODO
-    '<rootDir>/lib/(formatted-log|prometheus|report).js', // TODO
-    '<rootDir>/api/' // TODO
+    '<rootDir>/controllers/(generate-image|generate-template).js',
+    '<rootDir>/lib/formatted-log.js'
   ],
   roots: ['<rootDir>/test/']
 }

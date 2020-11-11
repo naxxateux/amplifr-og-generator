@@ -1,20 +1,15 @@
 const http = require('http')
 
-const { startMonitoring } = require('./lib/prometheus')
 const formattedLog = require('./lib/formatted-log')
 const router = require('./controllers/router')
-const report = require('./lib/report')
 
 const INTERNAL_PORT = process.env.INTERNAL_PORT || '8081'
 const PORT = process.env.PORT || '8080'
 const HOST = process.env.HOST || '0.0.0.0'
 
-startMonitoring()
 formattedLog('Starting server…')
-
 http.createServer(onRequest).listen(PORT, HOST)
 http.createServer(onRequest).listen(INTERNAL_PORT, HOST)
-
 formattedLog('Server is listening', `http://${HOST}:${PORT}`)
 formattedLog('Internal Server is listening', `http://${HOST}:${INTERNAL_PORT}`)
 
@@ -41,18 +36,14 @@ function reactToSignals () {
     formattedLog('SIGINT received. Stopping server…')
     process.exit(0)
   })
+
   process.on('SIGTERM', () => {
     formattedLog('SIGTERM received. Stopping server…')
     process.exit(0)
   })
+
   process.on('exit', () => {
     formattedLog('Server stopped')
-  })
-  process.on('uncaughtException', error => {
-    report(error.message, error, 'error')
-  })
-  process.on('unhandledRejection', error => {
-    report(error.message, error, 'error')
   })
 }
 

@@ -29,11 +29,18 @@ Execute `npx jest` or `npx jest --coverage` to run all tests
 
 ## Endpoints 🦊
 
-// TODO
+1. GET `/` — get template page. Params: `type` (ex.: `calculator`) and `values` 
+   separated with coma (ex.: `1 час,256 рублей`)
+
+2. GET `/image` — get `.png` image. Params: `type` (ex.: `calculator`) and 
+   `values` separated with coma (ex.: `1 час,256 рублей`)
 
 ## How it works :microscope:
 
-// TODO
+Marketing site with test, survey or calculator allows user to get his own 
+custom result. Sharing links should lead to the site, but also have og tags 
+with custom user content and og image with this data. This service allows us to 
+achieve it.
 
 ## Deploy :rocket:
 

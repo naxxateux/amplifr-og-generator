@@ -1,0 +1,95 @@
+version: 2.1
+
+orbs:
+  evilms: evilms/gcr-cleaner@0.1.9
+
+jobs:
+  build:
+    docker:
+      - image: docker:18.09.9
+    steps:
+      - checkout
+
+      # Enable remote CircleCI Docker environment which we will use to build our image
+      - setup_remote_docker:
+          version: 18.09.3
+
+      # Login to a private Docker registry
+      - run:
+          name: Login to Google Container Registry
+          command: docker login -u _json_key -p "${GCP_REGISTRY_PASS}" gcr.io
+
+      # build the application image
+      - run:
+          name: Build docker image for og-generator
+          command: DOCKER_BUILDKIT=1 docker build -t gcr.io/amplifr.com/amplifr/amplifr-og-generator:${CIRCLE_BRANCH}-${CIRCLE_SHA1} .
+
+      # deploy the image
+      - run:
+          name: Push image to Google Container Registry
+          command: docker push gcr.io/amplifr.com/amplifr/amplifr-og-generator:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
+
+  deploy:
+    description: "Deploy application to Kubernetes"
+    parameters:
+      helm_release:
+        type: string
+      k8s_environment:
+        type: string
+    docker:
+      - image: quay.io/evl.ms/helm-kubectl:3.2.1
+    steps:
+      - checkout
+      - run:
+          name: Create K8s cluster CA.crt file.
+          command: echo $K8S_CA_FILE | base64 -d > /tmp/k8s-ca.crt
+      - run:
+          name: Configure kubectl
+          command: |
+            /usr/local/bin/kubectl config set-cluster << parameters.k8s_environment >> --server https://kubernetes.amplifr.com:8443 --certificate-authority=/tmp/k8s-ca.crt \
+            && /usr/local/bin/kubectl config set-context << parameters.k8s_environment >> --cluster=<< parameters.k8s_environment >> --user=circleci-deploy \
+            && /usr/local/bin/kubectl config set-credentials circleci-deploy --token=$K8S_DEPLOY_TOKEN \
+            && /usr/local/bin/kubectl config use-context << parameters.k8s_environment >> \
+            && /usr/local/bin/kubectl version \
+            && /usr/local/bin/kubectl get no
+      - run:
+         name: Deploy chart
+         command: |
+           /usr/local/bin/helm get values -n << parameters.helm_release >> << parameters.helm_release >> > /tmp/current-values.yml
+           /usr/local/bin/helm upgrade << parameters.helm_release >> ./helm-chart -n << parameters.helm_release >> -f /tmp/current-values.yml --set image.tag=${CIRCLE_BRANCH}-${CIRCLE_SHA1} --set release.username=${CIRCLE_USERNAME} --wait --atomic
+
+workflows:
+  version: 2
+  deploy:
+    jobs:
+      - build:
+          context: amplifr-k8s-deploy
+          filters:
+            branches:
+              only:
+                - master
+                - releases
+                - testing
+                - v2
+      - evilms/single_image:
+          filters:
+            branches:
+              only:
+                - master
+                - releases
+                - testing
+                - v2
+          number: 10
+          image: 'amplifr-og-generator'
+          tag_regex: ${CIRCLE_BRANCH}
+          context: amplifr-k8s-deploy
+      - deploy:
+          context: amplifr-k8s-deploy
+          helm_release: og-generator
+          k8s_environment: production
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - releases
